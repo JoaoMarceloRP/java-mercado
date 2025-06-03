@@ -40,7 +40,7 @@ public class EditUsuario extends JFrame {
 
         gbc.gridx = 0; gbc.gridy = 2;
         add(new JLabel("Tipo:"), gbc);
-        tipoComboBox = new JComboBox<>(new String[]{"Usuário", "Administrador"});
+        tipoComboBox = new JComboBox<>(new String[]{"Administrador", "Colaborador","Usuário"});
         tipoComboBox.setSelectedIndex(tipo);
         gbc.gridx = 1;
         add(tipoComboBox, gbc);

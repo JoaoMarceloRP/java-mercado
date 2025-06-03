@@ -3,13 +3,13 @@ import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
 
-public class Mercado extends JFrame implements ActionListener {
+public class Login extends JFrame implements ActionListener {
 
     private JTextField userField;
     private JPasswordField passField;
     private JButton loginButton;
 
-    public Mercado() {
+    public Login() {
         setTitle("Tela de Login");
         setSize(400, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -47,60 +47,49 @@ public class Mercado extends JFrame implements ActionListener {
     @Override
 
     public void actionPerformed(ActionEvent e) {
-        abrirTelaPrincipal();
+    String usuario = userField.getText();
+    String senha = new String(passField.getPassword());
+
+    String nomeUsuario = validarLogin(usuario, senha);
+    if (nomeUsuario != null) {
+        JOptionPane.showMessageDialog(this, "Login bem-sucedido!");
+        abrirTelaPrincipal(nomeUsuario);
         dispose();
-    }
-
-    // login sim ou nao 
-    /*
-    public void actionPerformed(ActionEvent e) {
-        String usuario = userField.getText();
-        String senha = new String(passField.getPassword());
-
-        if (validarLogin(usuario, senha)) {
-            JOptionPane.showMessageDialog(this, "Login bem-sucedido!");
-            abrirTelaPrincipal();
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Usuário ou senha incorretos.");
-        }
-    }
-    */
-
-    private boolean validarLogin(String usuario, String senha) {
-    String url = "jdbc:sqlite:mercado.db";
-    String sql = "SELECT * FROM usuarios WHERE usuario = ? AND senha = ?";
-
-    try (Connection conn = DriverManager.getConnection(url)) {
-        System.out.println("✅ Conectado ao banco com sucesso!");
-
-        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, usuario);
-            stmt.setString(2, senha);
-
-            System.out.println("Usuário digitado: " + usuario);
-            System.out.println("Senha digitada: " + senha);
-
-            ResultSet rs = stmt.executeQuery();
-            boolean encontrado = rs.next();
-            System.out.println("Encontrou usuário? " + encontrado);
-            return encontrado;
-        }
-
-    } catch (SQLException ex) {
-        System.err.println("❌ Erro ao conectar no banco: " + ex.getMessage());
-        ex.printStackTrace();
-        return false;
+    } else {
+        JOptionPane.showMessageDialog(this, "Usuário ou senha incorretos.");
     }
 }
 
-    private void abrirTelaPrincipal() {
+    private String validarLogin(String usuario, String senha) {
+    String url = "jdbc:sqlite:mercado.db";
+    String sql = "SELECT * FROM usuarios WHERE usuario = ? AND senha = ?";
+
+    try (Connection conn = DriverManager.getConnection(url);
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+        stmt.setString(1, usuario);
+        stmt.setString(2, senha);
+
+        ResultSet rs = stmt.executeQuery();
+        if (rs.next()) {
+            return rs.getString("usuario"); 
+        }
+
+    } catch (SQLException ex) {
+        ex.printStackTrace();
+    }
+
+    return null;
+}
+
+
+    private void abrirTelaPrincipal(String nomeUsuario) {
     SwingUtilities.invokeLater(() -> {
-        new Menu().setVisible(true);
+        new Menu(nomeUsuario).setVisible(true);
     });
 }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new Mercado().setVisible(true));
+        SwingUtilities.invokeLater(() -> new Login().setVisible(true));
     }
 }
