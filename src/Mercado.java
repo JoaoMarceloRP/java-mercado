@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.*;
 import javax.swing.*;
 
 public class Mercado extends JFrame implements ActionListener {
@@ -10,42 +11,96 @@ public class Mercado extends JFrame implements ActionListener {
 
     public Mercado() {
         setTitle("Tela de Login");
-        setSize(600, 400);
+        setSize(400, 200);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(3, 2, 10, 10));
+        setLayout(new GridBagLayout());
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.WEST;
 
         JLabel userLabel = new JLabel("Usuário:");
-        userField = new JTextField();
+        userField = new JTextField(15);
 
         JLabel passLabel = new JLabel("Senha:");
-        passField = new JPasswordField();
+        passField = new JPasswordField(15);
 
         loginButton = new JButton("Entrar");
         loginButton.addActionListener(this);
 
-        add(userLabel);
-        add(userField);
-        add(passLabel);
-        add(passField);
-        add(new JLabel());
-        add(loginButton);
+        gbc.gridx = 0; gbc.gridy = 0;
+        add(userLabel, gbc);
+        gbc.gridx = 1;
+        add(userField, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        add(passLabel, gbc);
+        gbc.gridx = 1;
+        add(passField, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 2;
+        add(loginButton, gbc);
     }
 
-    public void actionPerformed(ActionEvent e) {
-        String username = userField.getText();
-        String password = new String(passField.getPassword());
+    @Override
 
-        if ("admin".equals(username) && "1234".equals(password)) {
+    public void actionPerformed(ActionEvent e) {
+        abrirTelaPrincipal();
+        dispose();
+    }
+
+    // login sim ou nao 
+    /*
+    public void actionPerformed(ActionEvent e) {
+        String usuario = userField.getText();
+        String senha = new String(passField.getPassword());
+
+        if (validarLogin(usuario, senha)) {
             JOptionPane.showMessageDialog(this, "Login bem-sucedido!");
+            abrirTelaPrincipal();
+            dispose();
         } else {
             JOptionPane.showMessageDialog(this, "Usuário ou senha incorretos.");
         }
     }
+    */
+
+    private boolean validarLogin(String usuario, String senha) {
+    String url = "jdbc:sqlite:mercado.db";
+    String sql = "SELECT * FROM usuarios WHERE usuario = ? AND senha = ?";
+
+    try (Connection conn = DriverManager.getConnection(url)) {
+        System.out.println("✅ Conectado ao banco com sucesso!");
+
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, usuario);
+            stmt.setString(2, senha);
+
+            System.out.println("Usuário digitado: " + usuario);
+            System.out.println("Senha digitada: " + senha);
+
+            ResultSet rs = stmt.executeQuery();
+            boolean encontrado = rs.next();
+            System.out.println("Encontrou usuário? " + encontrado);
+            return encontrado;
+        }
+
+    } catch (SQLException ex) {
+        System.err.println("❌ Erro ao conectar no banco: " + ex.getMessage());
+        ex.printStackTrace();
+        return false;
+    }
+}
+
+    private void abrirTelaPrincipal() {
+    SwingUtilities.invokeLater(() -> {
+        new Menu().setVisible(true);
+    });
+}
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            new Mercado().setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new Mercado().setVisible(true));
     }
 }
