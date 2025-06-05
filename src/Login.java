@@ -11,7 +11,7 @@ public class Login extends JFrame implements ActionListener {
 
     public Login() {
         setTitle("Tela de Login");
-        setSize(400, 200);
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new GridBagLayout());
@@ -45,51 +45,78 @@ public class Login extends JFrame implements ActionListener {
     }
 
     @Override
-
     public void actionPerformed(ActionEvent e) {
-    String usuario = userField.getText();
-    String senha = new String(passField.getPassword());
+        String usuario = userField.getText();
+        String senha = new String(passField.getPassword());
 
-    String nomeUsuario = validarLogin(usuario, senha);
-    if (nomeUsuario != null) {
-        JOptionPane.showMessageDialog(this, "Login bem-sucedido!");
-        abrirTelaPrincipal(nomeUsuario);
-        dispose();
-    } else {
-        JOptionPane.showMessageDialog(this, "Usuário ou senha incorretos.");
+        String nomeUsuario = validarLogin(usuario, senha);
+        if (nomeUsuario != null) {
+            JOptionPane.showMessageDialog(this, "Login bem-sucedido!");
+            abrirTelaPrincipal(nomeUsuario);
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(this, "Usuário ou senha incorretos.");
+        }
     }
-}
 
     private String validarLogin(String usuario, String senha) {
-    String url = "jdbc:sqlite:mercado.db";
-    String sql = "SELECT * FROM usuarios WHERE usuario = ? AND senha = ?";
+        String url = "jdbc:sqlite:mercado.db";
+        String sql = "SELECT * FROM usuarios WHERE usuario = ? AND senha = ?";
 
-    try (Connection conn = DriverManager.getConnection(url);
-         PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
 
-        stmt.setString(1, usuario);
-        stmt.setString(2, senha);
+            stmt.setString(1, usuario);
+            stmt.setString(2, senha);
 
-        ResultSet rs = stmt.executeQuery();
-        if (rs.next()) {
-            return rs.getString("usuario"); 
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("usuario");
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
 
-    } catch (SQLException ex) {
-        ex.printStackTrace();
+        return null;
     }
 
-    return null;
-}
-
-
     private void abrirTelaPrincipal(String nomeUsuario) {
-    SwingUtilities.invokeLater(() -> {
-        new Menu(nomeUsuario).setVisible(true);
-    });
-}
+        SwingUtilities.invokeLater(() -> {
+            new Menu(nomeUsuario).setVisible(true);
+        });
+    }
+
+    private static void garantirAdmin() {
+        String url = "jdbc:sqlite:mercado.db";
+
+        String criarTabela = "CREATE TABLE IF NOT EXISTS usuarios (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "usuario TEXT NOT NULL UNIQUE," +
+                "senha TEXT NOT NULL," +
+                "tipo TEXT NOT NULL)"; 
+
+        String checarAdmin = "SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'admin'";
+        String inserirAdmin = "INSERT INTO usuarios (usuario, senha, tipo) VALUES ('admin', '1234', 'admin')";
+
+        try (Connection conn = DriverManager.getConnection(url);
+            Statement stmt = conn.createStatement()) {
+
+            stmt.execute(criarTabela);
+
+            try (ResultSet rs = stmt.executeQuery(checarAdmin)) {
+                if (rs.next() && rs.getInt("total") == 0) {
+                    stmt.executeUpdate(inserirAdmin);
+                } 
+           }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
+        garantirAdmin();
         SwingUtilities.invokeLater(() -> new Login().setVisible(true));
     }
 }

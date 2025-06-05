@@ -4,8 +4,12 @@ import javax.swing.*;
 public class Menu extends JFrame {
 
     private JLabel lblUsuarioLogado;
+    private String nomeUsuario;
 
     public Menu(String nomeUsuario) {
+
+        this.nomeUsuario = nomeUsuario;
+
         setTitle("Tela Inicial");
         setSize(300, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -13,11 +17,11 @@ public class Menu extends JFrame {
         setLayout(new BorderLayout());
 
         // Nome do usuário logado no topo
-        if (nomeUsuario == null || nomeUsuario.isEmpty()) {
-            nomeUsuario = "Usuário Desconhecido";
-        }
+        this.nomeUsuario = (nomeUsuario == null || nomeUsuario.isEmpty())
+        ? "Usuário Desconhecido"
+        : nomeUsuario;
         
-        lblUsuarioLogado = new JLabel(nomeUsuario, SwingConstants.RIGHT);
+        lblUsuarioLogado = new JLabel(this.nomeUsuario, SwingConstants.RIGHT);
         JPanel painelTopo = new JPanel(new BorderLayout());
         painelTopo.add(lblUsuarioLogado, BorderLayout.EAST);
         add(painelTopo, BorderLayout.NORTH);
@@ -29,16 +33,16 @@ public class Menu extends JFrame {
 
         JButton btnProduto = new JButton("Gerenciar Produtos");
         btnProduto.addActionListener(e -> {
-            MenuGrupo Produto = new MenuGrupo();
-            Produto.setVisible(true);
-            dispose();
+        MenuGrupo grupo = new MenuGrupo(nomeUsuario);
+        grupo.setVisible(true);
+        dispose();
         });
         painelCentro.add(btnProduto);
 
 
         JButton btnUsuarios = new JButton("Gerenciar Usuários");
         btnUsuarios.addActionListener(e -> {
-            MenuUsuario menuUsuario = new MenuUsuario();
+            MenuUsuario menuUsuario = new MenuUsuario(nomeUsuario);
             menuUsuario.setVisible(true);
             dispose();
         });

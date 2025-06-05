@@ -8,19 +8,25 @@ import javax.swing.table.DefaultTableModel;
 
 public class MenuGrupo extends JFrame {
 
-    private static MenuGrupo instanciaAberta = null;
+    public static MenuGrupo instanciaAberta = null;
 
     private JTable tabelaGrupos;
     private DefaultTableModel modeloTabela;
     private JButton btnRemoverGrupo;
     private JButton btnEditarGrupo;
+    private JButton btnProdutosGrupo;
+    private String nomeUsuario;
 
-    public MenuGrupo() {
+
+    public MenuGrupo(String nomeUsuario) {
+
         if (instanciaAberta != null) {
             instanciaAberta.toFront();
             return;
         }
         instanciaAberta = this;
+
+        this.nomeUsuario = nomeUsuario;
 
         setTitle("Grupos de Produtos");
         setSize(800, 400);
@@ -42,6 +48,7 @@ public class MenuGrupo extends JFrame {
         JButton btnAddGrupo = new JButton("Adicionar Grupo");
         btnRemoverGrupo = new JButton("Remover Grupo");
         btnEditarGrupo = new JButton("Editar Grupo");
+        btnProdutosGrupo = new JButton("Produtos do Grupo");
 
         btnRemoverGrupo.setEnabled(false);
         btnEditarGrupo.setEnabled(false);
@@ -59,14 +66,30 @@ public class MenuGrupo extends JFrame {
 
         btnRemoverGrupo.addActionListener(e -> removerGrupoSelecionado());
         btnEditarGrupo.addActionListener(e -> editarGrupoSelecionado());
-
+        
         painelBotoes.add(btnAddGrupo);
         painelBotoes.add(Box.createVerticalStrut(10));
         painelBotoes.add(btnEditarGrupo);
         painelBotoes.add(Box.createVerticalStrut(10));
         painelBotoes.add(btnRemoverGrupo);
+        painelBotoes.add(Box.createVerticalStrut(10));
+        painelBotoes.add(btnProdutosGrupo);
 
         add(painelBotoes, BorderLayout.WEST);
+
+        btnProdutosGrupo.setEnabled(false);
+
+        btnProdutosGrupo.addActionListener(e -> {
+            int linha = tabelaGrupos.getSelectedRow();
+            if (linha != -1) {
+                int grupoId = (int) modeloTabela.getValueAt(linha, 0);
+                String grupoNome = (String) modeloTabela.getValueAt(linha, 1);
+
+                MenuProduto telaProdutos = new MenuProduto(grupoId, grupoNome, nomeUsuario);
+                telaProdutos.setVisible(true);
+                dispose();
+            }
+        });
 
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Nome do Grupo"}, 0) {
             @Override
@@ -83,12 +106,28 @@ public class MenuGrupo extends JFrame {
             boolean selecionado = !tabelaGrupos.getSelectionModel().isSelectionEmpty();
             btnRemoverGrupo.setEnabled(selecionado);
             btnEditarGrupo.setEnabled(selecionado);
+            btnProdutosGrupo.setEnabled(selecionado);
+        });
+
+        tabelaGrupos.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+            if (e.getClickCount() == 2 && tabelaGrupos.getSelectedRow() != -1) {
+                int linha = tabelaGrupos.getSelectedRow();
+                int grupoId = (int) modeloTabela.getValueAt(linha, 0);
+                String grupoNome = (String) modeloTabela.getValueAt(linha, 1);
+
+                MenuProduto telaProdutos = new MenuProduto(grupoId, grupoNome, nomeUsuario);
+                telaProdutos.setVisible(true);
+                dispose();
+                }
+            }
         });
 
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnVoltar = new JButton("Voltar ao Menu");
         btnVoltar.addActionListener(e -> {
-            new Menu("Nome do Usuário").setVisible(true);
+            new Menu(nomeUsuario).setVisible(true); 
             dispose();
         });
         painelInferior.add(btnVoltar);

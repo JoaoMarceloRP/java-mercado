@@ -11,9 +11,12 @@ public class MenuUsuario extends JFrame {
     private DefaultTableModel modeloTabela;
     private JButton btnRemoverUsuario;
     private JButton btnEditarUsuario;
+    private String nomeUsuario;
 
-    public MenuUsuario() {
-        setTitle("Menu Principal");
+    public MenuUsuario(String nomeUsuario) {
+        this.nomeUsuario = nomeUsuario;
+
+        setTitle("Menu de Usuários");
         setSize(800, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -38,10 +41,8 @@ public class MenuUsuario extends JFrame {
             });
             telaAdd.setVisible(true);
         });
-        
 
         btnRemoverUsuario.addActionListener(e -> removerUsuarioSelecionado());
-
         btnEditarUsuario.addActionListener(e -> editarUsuarioSelecionado());
 
         painelBotoes.add(btnAddUsuario);
@@ -49,7 +50,6 @@ public class MenuUsuario extends JFrame {
         painelBotoes.add(btnEditarUsuario);
         painelBotoes.add(Box.createRigidArea(new Dimension(0, 10)));
         painelBotoes.add(btnRemoverUsuario);
-
         add(painelBotoes, BorderLayout.WEST);
 
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Usuário", "Senha", "Tipo"}, 0);
@@ -68,7 +68,7 @@ public class MenuUsuario extends JFrame {
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnVoltar = new JButton("Voltar ao Menu");
         btnVoltar.addActionListener(e -> {
-            new Menu("Nome do Usuário").setVisible(true);
+            new Menu(nomeUsuario).setVisible(true); 
             dispose();
         });
         painelInferior.add(btnVoltar);
@@ -88,7 +88,6 @@ public class MenuUsuario extends JFrame {
                         rs.getString("usuario"),
                         rs.getString("senha"),
                         rs.getInt("tipo")
-                        
                 });
             }
         } catch (SQLException e) {
@@ -134,8 +133,6 @@ public class MenuUsuario extends JFrame {
         String usuario = (String) modeloTabela.getValueAt(linhaSelecionada, 1);
         String senha = (String) modeloTabela.getValueAt(linhaSelecionada, 2);
         int tipo = (int) modeloTabela.getValueAt(linhaSelecionada, 3);
-
-        System.out.println("Abrindo tela de edição para ID: " + id);
 
         EditUsuario telaEditar = new EditUsuario(id, usuario, senha, tipo);
         telaEditar.addWindowListener(new java.awt.event.WindowAdapter() {
