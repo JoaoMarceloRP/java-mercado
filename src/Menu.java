@@ -48,6 +48,16 @@ public class Menu extends JFrame {
         });
         painelCentro.add(btnUsuarios);
 
+
+        JButton btnHistorico = new JButton("Histórico de Compras");
+        btnHistorico.addActionListener(e -> {
+            HistoricoCompras historico = new HistoricoCompras(MenuGrupo.usuarioIdLogado, nomeUsuario);
+            historico.setVisible(true);
+            dispose();
+        });
+        painelCentro.add(btnHistorico);
+
+
         add(painelCentro, BorderLayout.CENTER);
 
 

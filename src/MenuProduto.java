@@ -97,20 +97,35 @@ public class MenuProduto extends JFrame {
         carregarProdutos();
 
         btnAdicionarCarrinho.addActionListener(e -> {
-        int linha = tabelaProdutos.getSelectedRow();
-        if (linha != -1) {
-            Object[] produto = new Object[4];
-            for (int i = 0; i < 4; i++) {
-                produto[i] = modeloTabela.getValueAt(linha, i);
-            }
-            boolean jaExiste = carrinho.stream().anyMatch(p -> (int) p[0] == (int) produto[0]);
-            if (!jaExiste) {
-                carrinho.add(produto);
-                JOptionPane.showMessageDialog(this, "Produto adicionado ao carrinho.");
-            } else {
-                JOptionPane.showMessageDialog(this, "Produto já está no carrinho.");
-            }
-            }
+            int linha = tabelaProdutos.getSelectedRow();
+            if (linha != -1) {
+                int id = (int) modeloTabela.getValueAt(linha, 0);
+                String nome = (String) modeloTabela.getValueAt(linha, 1);
+                double preco = (double) modeloTabela.getValueAt(linha, 2);
+                int estoque = (int) modeloTabela.getValueAt(linha, 3);
+
+                String input = JOptionPane.showInputDialog(this, "Quantidade (disponível: " + estoque + "):", "Adicionar ao Carrinho", JOptionPane.PLAIN_MESSAGE);
+                if (input != null) {
+                    try {
+                        int quantidadeDesejada = Integer.parseInt(input);
+                        if (quantidadeDesejada <= 0) {
+                            JOptionPane.showMessageDialog(this, "A quantidade deve ser maior que zero.");
+                        } else if (quantidadeDesejada > estoque) {
+                            JOptionPane.showMessageDialog(this, "Estoque insuficiente.");
+                        } else {
+                            boolean jaExiste = carrinho.stream().anyMatch(p -> (int) p[0] == id);
+                            if (!jaExiste) {
+                                carrinho.add(new Object[]{id, nome, preco, quantidadeDesejada});
+                                JOptionPane.showMessageDialog(this, "Produto adicionado ao carrinho.");
+                            } else {
+                                JOptionPane.showMessageDialog(this, "Produto já está no carrinho.");
+                            }
+                        }
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Digite um número válido.");
+                    }
+                }
+        }
         });
     }
 

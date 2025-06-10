@@ -9,6 +9,7 @@ import javax.swing.table.DefaultTableModel;
 public class MenuGrupo extends JFrame {
 
     public static MenuGrupo instanciaAberta = null;
+    public static int usuarioIdLogado;
 
     private JTable tabelaGrupos;
     private DefaultTableModel modeloTabela;
@@ -17,9 +18,7 @@ public class MenuGrupo extends JFrame {
     private JButton btnProdutosGrupo;
     private String nomeUsuario;
 
-
     public MenuGrupo(String nomeUsuario) {
-
         if (instanciaAberta != null) {
             instanciaAberta.toFront();
             return;
@@ -52,12 +51,13 @@ public class MenuGrupo extends JFrame {
 
         btnRemoverGrupo.setEnabled(false);
         btnEditarGrupo.setEnabled(false);
+        btnProdutosGrupo.setEnabled(false);
 
         btnAddGrupo.addActionListener(e -> {
             AddGrupo telaAdd = new AddGrupo();
-            telaAdd.addWindowListener(new java.awt.event.WindowAdapter() {
+            telaAdd.addWindowListener(new WindowAdapter() {
                 @Override
-                public void windowClosed(java.awt.event.WindowEvent e) {
+                public void windowClosed(WindowEvent e) {
                     carregarGrupos();
                 }
             });
@@ -66,7 +66,18 @@ public class MenuGrupo extends JFrame {
 
         btnRemoverGrupo.addActionListener(e -> removerGrupoSelecionado());
         btnEditarGrupo.addActionListener(e -> editarGrupoSelecionado());
-        
+
+        btnProdutosGrupo.addActionListener(e -> {
+            int linha = tabelaGrupos.getSelectedRow();
+            if (linha != -1) {
+                int grupoId = (int) modeloTabela.getValueAt(linha, 0);
+                String grupoNome = (String) modeloTabela.getValueAt(linha, 1);
+                MenuProduto telaProdutos = new MenuProduto(grupoId, grupoNome, nomeUsuario);
+                telaProdutos.setVisible(true);
+                dispose();
+            }
+        });
+
         painelBotoes.add(btnAddGrupo);
         painelBotoes.add(Box.createVerticalStrut(10));
         painelBotoes.add(btnEditarGrupo);
@@ -77,26 +88,13 @@ public class MenuGrupo extends JFrame {
 
         add(painelBotoes, BorderLayout.WEST);
 
-        btnProdutosGrupo.setEnabled(false);
-
-        btnProdutosGrupo.addActionListener(e -> {
-            int linha = tabelaGrupos.getSelectedRow();
-            if (linha != -1) {
-                int grupoId = (int) modeloTabela.getValueAt(linha, 0);
-                String grupoNome = (String) modeloTabela.getValueAt(linha, 1);
-
-                MenuProduto telaProdutos = new MenuProduto(grupoId, grupoNome, nomeUsuario);
-                telaProdutos.setVisible(true);
-                dispose();
-            }
-        });
-
         modeloTabela = new DefaultTableModel(new String[]{"ID", "Nome do Grupo"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
+
         tabelaGrupos = new JTable(modeloTabela);
         tabelaGrupos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(tabelaGrupos);
@@ -112,14 +110,13 @@ public class MenuGrupo extends JFrame {
         tabelaGrupos.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-            if (e.getClickCount() == 2 && tabelaGrupos.getSelectedRow() != -1) {
-                int linha = tabelaGrupos.getSelectedRow();
-                int grupoId = (int) modeloTabela.getValueAt(linha, 0);
-                String grupoNome = (String) modeloTabela.getValueAt(linha, 1);
-
-                MenuProduto telaProdutos = new MenuProduto(grupoId, grupoNome, nomeUsuario);
-                telaProdutos.setVisible(true);
-                dispose();
+                if (e.getClickCount() == 2 && tabelaGrupos.getSelectedRow() != -1) {
+                    int linha = tabelaGrupos.getSelectedRow();
+                    int grupoId = (int) modeloTabela.getValueAt(linha, 0);
+                    String grupoNome = (String) modeloTabela.getValueAt(linha, 1);
+                    MenuProduto telaProdutos = new MenuProduto(grupoId, grupoNome, nomeUsuario);
+                    telaProdutos.setVisible(true);
+                    dispose();
                 }
             }
         });
@@ -127,7 +124,7 @@ public class MenuGrupo extends JFrame {
         JPanel painelInferior = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton btnVoltar = new JButton("Voltar ao Menu");
         btnVoltar.addActionListener(e -> {
-            new Menu(nomeUsuario).setVisible(true); 
+            new Menu(nomeUsuario).setVisible(true);
             dispose();
         });
         painelInferior.add(btnVoltar);
@@ -149,7 +146,6 @@ public class MenuGrupo extends JFrame {
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar grupos: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -161,7 +157,7 @@ public class MenuGrupo extends JFrame {
         String nome = (String) modeloTabela.getValueAt(linha, 1);
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Deseja remover o grupo \"" + nome + "\" (ID: " + id + ")?",
+                "Deseja remover o grupo \"" + nome + "\"?",
                 "Confirmar remoção", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
@@ -173,7 +169,6 @@ public class MenuGrupo extends JFrame {
                 JOptionPane.showMessageDialog(this, "Grupo removido com sucesso.");
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Erro ao remover grupo: " + e.getMessage());
-                e.printStackTrace();
             }
         }
     }
@@ -186,9 +181,9 @@ public class MenuGrupo extends JFrame {
         String nome = (String) modeloTabela.getValueAt(linha, 1);
 
         EditGrupo telaEditar = new EditGrupo(id, nome);
-        telaEditar.addWindowListener(new java.awt.event.WindowAdapter() {
+        telaEditar.addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosed(java.awt.event.WindowEvent e) {
+            public void windowClosed(WindowEvent e) {
                 carregarGrupos();
             }
         });
